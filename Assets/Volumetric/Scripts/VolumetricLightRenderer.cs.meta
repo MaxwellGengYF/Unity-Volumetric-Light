@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 07475e299cbd4824ea72f26b86369547
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - randomTex: {fileID: 2800000, guid: 6cef55810713879478d10515eba56c38, type: 2}
+  - DefaultSpotCookie: {instanceID: 0}
+  - volumeLightTexture: {instanceID: 0}
+  - volumeDepthTexture: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
