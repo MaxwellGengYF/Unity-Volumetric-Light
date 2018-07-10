@@ -65,7 +65,6 @@ public class VolumetricLightRenderer : MonoBehaviour
     public Texture DefaultSpotCookie;
     public CommandBuffer GlobalCommandBuffer { get { return _preLightPass; } }
 	int halfPass;
-	int fullPass;
 	[System.NonSerialized]
 	public RenderTexture volumeLightTexture;
 	[System.NonSerialized]
@@ -187,9 +186,6 @@ public class VolumetricLightRenderer : MonoBehaviour
         LoadNoise3dTexture();
 		bool dx11 = SystemInfo.graphicsShaderLevel > 40;
 		halfPass = dx11 ? 4 : 10;
-		fullPass = dx11 ? 6 : 11;
-		screenWidth = _camera.pixelWidth;
-		screenHeight = _camera.pixelHeight;
 		if (_currentResolution == VolumtericResolution.Half)
 		{
 			onPreRenderAction = () => {
@@ -253,8 +249,6 @@ public class VolumetricLightRenderer : MonoBehaviour
         else
             _camera.RemoveCommandBuffer(CameraEvent.BeforeLighting, _preLightPass);
     }
-	int screenWidth;
-	int screenHeight;
     /// <summary>
     /// 
     /// </summary>
@@ -318,7 +312,7 @@ public class VolumetricLightRenderer : MonoBehaviour
     /// </summary>
     public void OnPreRender()
     {
-
+        Shader.SetGlobalFloat(_RandomNumber, UnityEngine.Random.Range(0f, 1000f));
         Matrix4x4 proj = GL.GetGPUProjectionMatrix(Camera.current.projectionMatrix, true);
         _viewProj = proj * _camera.worldToCameraMatrix;
 
@@ -336,19 +330,20 @@ public class VolumetricLightRenderer : MonoBehaviour
     [ImageEffectOpaque]
     public void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-       
+        if(onImageEvent != null)
+        onImageEvent(this);
 		onRenderImageAction ();
         _blitAddMaterial.SetTexture(_Source, source);
         Graphics.Blit(_volumeLightTexture, destination, _blitAddMaterial, 0);
     }
 	static bool inited = false;
 	static int _Source ;
-	static int _HalfResDepthBuffer ;
-	static int _HalfResColor ;
-	static int _NoiseTexture ;
-	static void InitVariable(){
+	static int _HalfResColor;
+	static int _NoiseTexture;
+    static int _RandomNumber = Shader.PropertyToID("_RandomNumber");
+
+    static void InitVariable(){
 		_Source = Shader.PropertyToID ("_Source");
-		_HalfResDepthBuffer = Shader.PropertyToID ("_HalfResDepthBuffer");
 		_HalfResColor = Shader.PropertyToID ("_HalfResColor");
 		_NoiseTexture = Shader.PropertyToID ("_NoiseTexture");
 	}

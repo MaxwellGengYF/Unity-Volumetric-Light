@@ -170,22 +170,21 @@ Shader "Hidden/BilateralBlur"
 			{
 				return loColor.Sample(linearSampler, input.uv);
 			}
-			// find nearest sample
 			float minDepthDiff = depthDiff[0];
 			float2 nearestUv = input.uv00;
-
+			[flatten]
 			if (depthDiff[1] < minDepthDiff)
 			{
 				nearestUv = input.uv10;
 				minDepthDiff = depthDiff[1];
 			}
-
+			[flatten]
 			if (depthDiff[2] < minDepthDiff)
 			{
 				nearestUv = input.uv01;
 				minDepthDiff = depthDiff[2];
 			}
-
+			[flatten]
 			if (depthDiff[3] < minDepthDiff)
 			{
 				nearestUv = input.uv11;
@@ -229,12 +228,7 @@ Shader "Hidden/BilateralBlur"
 		//-----------------------------------------------------------------------------------------
 		// GaussianWeight
 		//-----------------------------------------------------------------------------------------
-		float GaussianWeight(float offset, float2 deviation2)
-		{
-			float weight = deviation2.y;
-			weight *= exp(-(offset * offset) / (deviation2.x));
-			return weight;
-		}
+		#define GaussianWeight(offset, deviation2) (deviation2.y * exp(-(offset * offset) / (deviation2.x)))
 
 		//-----------------------------------------------------------------------------------------
 		// BilateralBlur
@@ -304,7 +298,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment horizontalFrag
-            #pragma target 4.0
+            #pragma target 5.0
 			
 			float4 horizontalFrag(v2f input) : SV_Target
 			{
@@ -320,7 +314,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment verticalFrag
-            #pragma target 4.0
+            #pragma target 5.0
 			
 			float4 verticalFrag(v2f input) : SV_Target
 			{
@@ -336,7 +330,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
             #pragma vertex vert
             #pragma fragment horizontalFrag
-            #pragma target 4.0
+            #pragma target 5.0
 
 			float4 horizontalFrag(v2f input) : SV_Target
 		{
@@ -352,7 +346,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
             #pragma vertex vert
             #pragma fragment verticalFrag
-            #pragma target 4.0
+            #pragma target 5.0
 
 			float4 verticalFrag(v2f input) : SV_Target
 		{
@@ -391,7 +385,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
 			#pragma vertex vertUpsampleToFull
 			#pragma fragment frag		
-            #pragma target 4.0
+            #pragma target 5.0
 
 			v2fUpsample vertUpsampleToFull(appdata v)
 			{
@@ -434,7 +428,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
             #pragma vertex vertUpsampleToFull
             #pragma fragment frag		
-            #pragma target 4.0
+            #pragma target 5.0
 
 			v2fUpsample vertUpsampleToFull(appdata v)
 			{
@@ -454,7 +448,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
             #pragma vertex vert
             #pragma fragment horizontalFrag
-            #pragma target 4.0
+            #pragma target 5.0
 
 			float4 horizontalFrag(v2f input) : SV_Target
 			{
@@ -470,7 +464,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
             #pragma vertex vert
             #pragma fragment verticalFrag
-            #pragma target 4.0
+            #pragma target 5.0
 
 			float4 verticalFrag(v2f input) : SV_Target
 			{
@@ -486,7 +480,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
 			#pragma vertex vertHalfDepth
 			#pragma fragment frag
-			#pragma target 4.0
+			#pragma target 5.0
 
 			v2fDownsample vertHalfDepth(appdata v)
 			{
@@ -507,7 +501,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
 			#pragma vertex vertQuarterDepth
 			#pragma fragment frag
-			#pragma target 4.0
+			#pragma target 5.0
 
 			v2fDownsample vertQuarterDepth(appdata v)
 			{

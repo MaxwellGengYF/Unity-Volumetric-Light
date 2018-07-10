@@ -70,11 +70,11 @@ ENDCG
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
+			#pragma target 5.0
 			void frag(v2f i, out float4 source : SV_Target)
 			{
 				float4 main = tex2D(_MainTex, i.texcoord);
 				source = tex2D(_Source, i.texcoord);
-				source *= main.w;
 				source.xyz += main.xyz;
 			}
 			ENDCG

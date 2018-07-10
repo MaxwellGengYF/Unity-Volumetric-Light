@@ -76,6 +76,8 @@ Shader "Sandbox/VolumetricLight"
 
 		int _SampleCount;
 		sampler3D _NoiseTexture;
+		sampler2D _VolumeRandomTex;
+		float4 _CameraDepthTexture_TexelSize;
 		struct v2f
 		{
 			float4 pos : SV_POSITION;
@@ -201,7 +203,8 @@ Shader "Sandbox/VolumetricLight"
 		// MieScattering
 		//-----------------------------------------------------------------------------------------
 		#define MieScattering(cosAngle, g) g.w * (g.x / (pow(g.y - g.z * cosAngle, 1.5)))
-		#define random(seed) sin(seed * 641.54675 + 482.435713)
+		#define random(seed) sin(seed * 641.5467987313875 + 482.4353437713)
+		float _RandomNumber;
 		//-----------------------------------------------------------------------------------------
 		// RayMarch
 		//-----------------------------------------------------------------------------------------
@@ -217,8 +220,8 @@ Shader "Sandbox/VolumetricLight"
 #endif
 			float3 final = rayStart + rayDir * rayLength;
 			float2 step = 1.0 / _SampleCount;
-			step *= float2(1,0.5);
-			float3 seed = random(_Time.w + dot(final, float3(74.1457,64.4573,19.4371)));
+			step.y *= 0.4;
+			float seed = random((_ScreenParams.y * screenPos.y + screenPos.x) * _ScreenParams.x + _RandomNumber);
 			[loop]
 			for (float i = step.x; i < 1; i += step.x)
 			{
@@ -590,6 +593,9 @@ Shader "Sandbox/VolumetricLight"
 			float4 fragDir(PSInput i) : SV_Target
 			{
 				float2 uv = i.uv.xy;
+				float2 param = _CameraDepthTexture_TexelSize.xy;
+				bool2 cull = uv <= param || uv > (1-param);
+				if(cull.x || cull.y) return 0;
 				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
 				float linearDepth = Linear01Depth(depth);
 
@@ -606,8 +612,9 @@ Shader "Sandbox/VolumetricLight"
 
 				if (linearDepth > 0.9999)
 				{
-					color.w = 1-_VolumetricLight.w + color.w * _VolumetricLight.w;
+					color.rgb *= _VolumetricLight.w;
 				}
+				color.w = 0;
 				return color;
 			}
 			ENDCG
