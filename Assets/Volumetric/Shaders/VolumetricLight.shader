@@ -45,8 +45,7 @@ Shader "Sandbox/VolumetricLight"
 		#endif
 		#include "VolumetricShadowLibrary.cginc"
 		#include "UnityDeferredLibrary.cginc"
-		float _Volumetric_Random[1023];
-		
+
 		float4 _FrustumCorners[4];
 		float4 _LightFinalColor;
 		struct appdata
@@ -203,7 +202,7 @@ Shader "Sandbox/VolumetricLight"
 		// MieScattering
 		//-----------------------------------------------------------------------------------------
 		#define MieScattering(cosAngle, g) g.w * (g.x / (pow(g.y - g.z * cosAngle, 1.5)))
-		#define random(seed) sin(seed * 641.5467987313875 + 482.4353437713)
+		#define random(seed) sin(seed * 641.5467987313875 + 1.943856175)
 		float _RandomNumber;
 		//-----------------------------------------------------------------------------------------
 		// RayMarch
