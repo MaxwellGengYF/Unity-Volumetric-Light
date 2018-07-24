@@ -134,9 +134,7 @@ Shader "Sandbox/VolumetricLight"
 		//-----------------------------------------------------------------------------------------
 		float GetLightAttenuation(float3 wpos)
 		{
-			float atten = 0;
-#if defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE)
-			atten = 1;
+			float atten = 1;
 #if SHADOWS_DEPTH_ON
 			// sample cascade shadow map
 			float4 cascadeWeights = GetCascadeWeights_SplitSpheres(wpos);
@@ -144,36 +142,6 @@ Shader "Sandbox/VolumetricLight"
 			weightSum.x += weightSum.y;
 			float3 samplePos = GetCascadeShadowCoord(float4(wpos, 1), cascadeWeights);
 			atten = UNITY_SAMPLE_SHADOW(_CascadeShadowMapTexture, samplePos.xyz);
-#endif
-#elif defined (SPOT)	
-			float3 tolight = _LightPos.xyz - wpos;
-			float3 lightDir = normalize(tolight);
-
-			float4 uvCookie = mul(_MyLightMatrix0, float4(wpos, 1));
-			// negative bias because http://aras-p.info/blog/2010/01/07/screenspace-vs-mip-mapping/
-			
-			atten = tex2Dbias(_LightTexture0, float4(uvCookie.xy / uvCookie.w, 0, -8)).w;
-			atten *= uvCookie.w < 0;
-			float att = dot(tolight, tolight) * _LightPos.w;
-			atten *= tex2D(_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
-
-#if SHADOWS_DEPTH_ON
-			float4 shadowCoord = mul(_MyWorld2Shadow, float4(wpos, 1));
-			atten *= saturate(UnitySampleShadowmap(shadowCoord));
-#endif
-
-#elif defined (POINT) || defined (POINT_COOKIE)
-			float3 tolight = wpos - _LightPos.xyz;
-			float3 lightDir = -normalize(tolight);
-
-			float att = dot(tolight, tolight) * _LightPos.w;
-			atten = tex2D(_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
-
-			atten *= UnityDeferredComputeShadow(tolight, 0, float2(0, 0));
-
-#if defined (POINT_COOKIE)
-			atten *= texCUBEbias(_LightTexture0, float4(mul(_MyLightMatrix0, float4(wpos, 1)).xyz, -8)).w;
-#endif //POINT_COOKIE
 #endif
 			return atten;
 		}
