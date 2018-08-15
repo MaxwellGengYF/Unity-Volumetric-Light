@@ -93,6 +93,36 @@ Shader "Sandbox/VolumetricLight"
 			return o;
 		}
 
+
+		#define fogFunc(height, intensity) exp(-height * intensity)
+
+		inline float fogFuncIntegret(float2 height, float intensity){
+			float2 result = exp(-height * intensity) / (-intensity);
+			return result.x - result.y;
+		}
+
+		inline float getFog(float3 startPos, float3 endPos, float intensity, float height){
+			float3 rayDir = endPos - startPos;
+			rayDir = normalize(rayDir);
+			float dotValue = dot(rayDir, float3(0,1,0));
+		/*	if(abs(dotValue) < 0.002)		//Consider use 
+			{
+				 float average = dot(float2(rayStartHeight, rayEndHeight), 0.5);
+				 float3 fogIntensity = float3(
+					 fogFunc(rayStartHeight, intensity),
+					 fogFunc(average, intensity),
+					 fogFunc(rayEndHeight, intensity)
+				 );
+				 return dot(fogIntensity, 0.33333333);
+			}
+			else
+			{*/
+				return abs(fogFuncIntegret(float2(startPos.y, endPos.y) + height, intensity) / dotValue);
+		//	}
+		}
+
+
+
 		//-----------------------------------------------------------------------------------------
 		// GetCascadeWeights_SplitSpheres
 		//-----------------------------------------------------------------------------------------
@@ -152,6 +182,7 @@ Shader "Sandbox/VolumetricLight"
         inline void ApplyHeightFog(float3 wpos, inout float4 density)
         {
             density *= exp(-(wpos.y + _HeightFog.x) * _HeightFog.y);
+			//density *= -2 * exp(-(wpos.y + _HeightFog.x) * _HeightFog.y)
         }
 
         //-----------------------------------------------------------------------------------------
@@ -560,9 +591,6 @@ Shader "Sandbox/VolumetricLight"
 			float4 fragDir(PSInput i) : SV_Target
 			{
 				float2 uv = i.uv.xy;
-				float2 param = _CameraDepthTexture_TexelSize.xy;
-				bool2 cull = uv <= param || uv > (1-param);
-				if(cull.x || cull.y) return 0;
 				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
 				float linearDepth = Linear01Depth(depth);
 

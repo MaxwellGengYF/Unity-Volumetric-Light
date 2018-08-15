@@ -67,6 +67,8 @@ public class VolumetricLight : MonoBehaviour
 
     private bool _reversedZ = false;
     static bool inited = false;
+    [Header("Debug(Only in Editor)")]
+    public bool debugMode = true;
     /// <summary>
     /// 
     /// </summary>
@@ -245,9 +247,10 @@ public class VolumetricLight : MonoBehaviour
 
         // downsampled light buffer can't use native zbuffer for ztest, try to perform ztest in pixel shader to avoid ray marching for occulded geometry 
         //_material.EnableKeyword("MANUAL_ZTEST");
-        //TODO
-        //Delete This
-        //initSet(renderer, viewProj);
+#if UNITY_EDITOR
+        if (debugMode)
+        initSet(renderer, viewProj);
+#endif
         SetupDirectionalLight(renderer, viewProj);
     }
     

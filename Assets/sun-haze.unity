@@ -1260,6 +1260,7 @@ MonoBehaviour:
   NoiseIntensityOffset: 0.3
   NoiseVelocity: {x: 3, y: 3}
   MaxRayLength: 32
+  debugMode: 1
 --- !u!108 &1590561736
 Light:
   m_ObjectHideFlags: 0
@@ -1747,6 +1748,7 @@ GameObject:
   - component: {fileID: 2131109541}
   - component: {fileID: 2131109540}
   - component: {fileID: 2131109538}
+  - component: {fileID: 2131109539}
   m_Layer: 8
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1767,6 +1769,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   resolution: 1
   DefaultSpotCookie: {fileID: 2800000, guid: 5679204bf3b8d4d459ed25afd9a51301, type: 3}
+--- !u!114 &2131109539
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 2131109537}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbfb4efa9d81c3247a7b9004fabbf164, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableInputCapture: 1
+  holdRightMouseCapture: 0
+  lookSpeed: 5
+  moveSpeed: 5
+  sprintSpeed: 50
 --- !u!81 &2131109540
 AudioListener:
   m_ObjectHideFlags: 0
@@ -1827,8 +1845,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2131109537}
-  m_LocalRotation: {x: 0.017200766, y: -0.9824017, z: -0.116653845, w: -0.14485471}
-  m_LocalPosition: {x: -15.693188, y: -7.980139, z: 35.408585}
+  m_LocalRotation: {x: 0.030387154, y: -0.96921533, z: -0.15809217, w: -0.18629302}
+  m_LocalPosition: {x: -4.288947, y: -1.9083581, z: 19.186144}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
