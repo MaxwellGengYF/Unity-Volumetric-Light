@@ -201,8 +201,8 @@ Shader "Sandbox/VolumetricLight"
 		// MieScattering
 		//-----------------------------------------------------------------------------------------
 		#define MieScattering(cosAngle, g) g.w * (g.x / (pow(g.y - g.z * cosAngle, 1.5)))
-		#define random(seed) sin(seed * 641.5467987313875 + 1.943856175)
-		float _RandomNumber;
+		#define random(seed) sin(seed * float2(641.5467987313875, 3154.135764) + float2(1.943856175, 631.543147))
+		float2 _RandomNumber;
 		//-----------------------------------------------------------------------------------------
 		// RayMarch
 		//-----------------------------------------------------------------------------------------
@@ -217,14 +217,16 @@ Shader "Sandbox/VolumetricLight"
 			// we don't know about density between camera and light's volume, assume 0.5
 #endif
 			float3 final = rayStart + rayDir * rayLength;
-			float2 step = 1.0 / _SampleCount;
-			step.y *= 0.4;
-			float seed = random((_ScreenParams.y * screenPos.y + screenPos.x) * _ScreenParams.x + _RandomNumber);
+			float3 step = 1.0 / _SampleCount;
+			step.yz *= float2(0.25, 0.2);
+			float2 seed = random((_ScreenParams.y * screenPos.y + screenPos.x) * _ScreenParams.x + _RandomNumber);
 			[loop]
 			for (float i = step.x; i < 1; i += step.x)
 			{
 				seed = random(seed);
-				float3 currentPosition = lerp(rayStart, final, i + seed * step.y);
+				float lerpValue = i + seed.y* step.y + seed.x * step.z;
+				lerpValue *= lerpValue;
+				float3 currentPosition = lerp(rayStart, final, lerpValue);
 				float atten = GetLightAttenuation(currentPosition);
 				float4 light = atten;
 #ifdef NOISE

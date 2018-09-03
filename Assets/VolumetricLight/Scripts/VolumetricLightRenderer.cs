@@ -312,7 +312,7 @@ public class VolumetricLightRenderer : MonoBehaviour
     /// </summary>
     public void OnPreRender()
     {
-        Shader.SetGlobalFloat(_RandomNumber, UnityEngine.Random.Range(0f, 1000f));
+        Shader.SetGlobalVector(_RandomNumber, new Vector2(UnityEngine.Random.Range(0f, 1000f), Vector3.Dot(Vector3.Cross(transform.position, transform.eulerAngles), Vector3.one)));
         Matrix4x4 proj = GL.GetGPUProjectionMatrix(Camera.current.projectionMatrix, true);
         _viewProj = proj * _camera.worldToCameraMatrix;
 
