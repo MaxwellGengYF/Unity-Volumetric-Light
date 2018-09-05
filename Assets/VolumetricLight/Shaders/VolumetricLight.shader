@@ -575,27 +575,24 @@ Shader "Sandbox/VolumetricLight"
 				float2 uv : TEXCOORD0;
 				float3 wpos : TEXCOORD1;
 			};
-						
+			float2 _JitterOffset;			
 			PSInput vertDir(VSInput i)
 			{
 				PSInput o;
 
 				o.pos = UnityObjectToClipPos(i.vertex);
-				o.uv = i.uv;
-
-				// SV_VertexId doesn't work on OpenGL for some reason -> reconstruct id from uv
-				//o.wpos = _FrustumCorners[i.vertexId];
-				o.wpos = _FrustumCorners[i.uv.x + i.uv.y*2];
-				
+				o.uv = i.uv + _JitterOffset;
+				float3 down = lerp(_FrustumCorners[0], _FrustumCorners[1], o.uv.x);
+				float3 up = lerp(_FrustumCorners[2], _FrustumCorners[3], o.uv.x);
+				o.wpos = lerp(down, up, o.uv.y);
 				return o;
 			}
-
+		
 			float4 fragDir(PSInput i) : SV_Target
 			{
-				float2 uv = i.uv.xy;
+				float2 uv = i.uv;
 				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
 				float linearDepth = Linear01Depth(depth);
-
 				float3 wpos = i.wpos;
 				float3 rayDir = wpos - _WorldSpaceCameraPos;				
 				rayDir *= linearDepth;
@@ -605,7 +602,7 @@ Shader "Sandbox/VolumetricLight"
 
 				rayLength = min(rayLength, _MaxRayLength);
 
-				float4 color = RayMarch(i.pos.xy, _WorldSpaceCameraPos, rayDir, rayLength);
+				float4 color = RayMarch(uv, _WorldSpaceCameraPos, rayDir, rayLength);
 
 				if (linearDepth > 0.9999)
 				{

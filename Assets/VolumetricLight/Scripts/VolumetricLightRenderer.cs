@@ -35,6 +35,7 @@ using System;
 [RequireComponent(typeof(Camera))]
 public class VolumetricLightRenderer : MonoBehaviour
 {
+    Vector2Int blurPass;
     public enum VolumtericResolution
     {
         Half = 2,
@@ -176,32 +177,24 @@ public class VolumetricLightRenderer : MonoBehaviour
             _defaultSpotCookie = DefaultSpotCookie;
         }
 
-        bool dx11 = SystemInfo.graphicsShaderLevel > 40;
-        halfPass = dx11 ? 4 : 10;
-
         onPreRenderAction = () =>
         {
-                // down sample depth to half res
-                _preLightPass.Blit(null, _halfDepthBuffer, _bilateralBlurMaterial, halfPass);
-
+            // down sample depth to half res
+            _preLightPass.Blit(null, _halfDepthBuffer, _bilateralBlurMaterial, 4);
             _preLightPass.SetRenderTarget(_halfVolumeLightTexture);
         };
         onRenderImageAction = () =>
         {
             RenderTexture temp = RenderTexture.GetTemporary(_halfVolumeLightTexture.width, _halfVolumeLightTexture.height, 0, RenderTextureFormat.ARGBHalf);
             temp.filterMode = FilterMode.Bilinear;
-
-                // horizontal bilateral blur at half res
-                Graphics.Blit(_halfVolumeLightTexture, temp, _bilateralBlurMaterial, 2);
-                // vertical bilateral blur at half res
-                Graphics.Blit(temp, _halfVolumeLightTexture, _bilateralBlurMaterial, 3);
-
-                // upscale to full res
-                Graphics.Blit(_halfVolumeLightTexture, _volumeLightTexture, _bilateralBlurMaterial, 5);
+            // horizontal bilateral blur at half res
+            Graphics.Blit(_halfVolumeLightTexture, temp, _bilateralBlurMaterial, blurPass.x);
+            // vertical bilateral blur at half res
+            Graphics.Blit(temp, _halfVolumeLightTexture, _bilateralBlurMaterial, blurPass.y);
+            // upscale to full res
+            Graphics.Blit(_halfVolumeLightTexture, _volumeLightTexture, _bilateralBlurMaterial, 5);
             RenderTexture.ReleaseTemporary(temp);
         };
-
-
     }
     /// <summary>
     /// 
@@ -226,6 +219,23 @@ public class VolumetricLightRenderer : MonoBehaviour
         else
             _camera.RemoveCommandBuffer(CameraEvent.BeforeLighting, _preLightPass);
     }
+
+    void UpdateMacroKeyword()
+    {
+        switch (_currentResolution)
+        {
+            case VolumtericResolution.Half:
+                blurPass = new Vector2Int(2, 3);
+                break;
+            case VolumtericResolution.Third:
+                blurPass = new Vector2Int(8, 9);
+                break;
+            default:
+                blurPass = new Vector2Int(0, 1);
+                break;
+        }
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -254,7 +264,7 @@ public class VolumetricLightRenderer : MonoBehaviour
         _halfDepthBuffer.name = "VolumeLightHalfDepth";
         _halfDepthBuffer.Create();
         _halfDepthBuffer.filterMode = FilterMode.Point;
-
+        UpdateMacroKeyword();
     }
 
     void ReChangeResolution()
@@ -275,7 +285,7 @@ public class VolumetricLightRenderer : MonoBehaviour
         _volumeLightTexture.width = width;
         _volumeLightTexture.height = height;
 
-
+        UpdateMacroKeyword();
 
     }
     public Action onPreRenderAction;
@@ -285,6 +295,12 @@ public class VolumetricLightRenderer : MonoBehaviour
     /// </summary>
     public void OnPreRender()
     {
+        int width = _halfVolumeLightTexture.width;
+        int height = _halfVolumeLightTexture.height;
+        Vector2 jitter;
+        jitter.x = UnityEngine.Random.Range(-1f, 1f) / (int)_currentResolution / width;
+        jitter.y = UnityEngine.Random.Range(-1f, 1f) / (int)_currentResolution / height;
+        Shader.SetGlobalVector(_JitterOffset, jitter);
         Shader.SetGlobalVector(_RandomNumber, new Vector2(UnityEngine.Random.Range(0f, 1000f), Vector3.Dot(Vector3.Cross(transform.position, transform.eulerAngles), Vector3.one)));
         Matrix4x4 proj = GL.GetGPUProjectionMatrix(Camera.current.projectionMatrix, true);
         _viewProj = proj * _camera.worldToCameraMatrix;
@@ -312,7 +328,7 @@ public class VolumetricLightRenderer : MonoBehaviour
     static int _Source = Shader.PropertyToID("_Source");
     static int _HalfResColor = Shader.PropertyToID("_HalfResColor");
     static int _RandomNumber = Shader.PropertyToID("_RandomNumber");
-
+    static int _JitterOffset = Shader.PropertyToID("_JitterOffset");
     private void UpdateMaterialParameters()
     {
         _bilateralBlurMaterial.SetTexture(_Source, _halfDepthBuffer);

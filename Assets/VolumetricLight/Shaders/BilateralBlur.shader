@@ -49,13 +49,18 @@ Shader "Hidden/BilateralBlur"
         #define DOWNSAMPLE_DEPTH_MODE 2
         #define UPSAMPLE_DEPTH_THRESHOLD 1.5f
         #define BLUR_DEPTH_FACTOR 0.5
-        #define GAUSS_BLUR_DEVIATION 1.5        
-        #define FULL_RES_BLUR_KERNEL_SIZE 7
-        #define HALF_RES_BLUR_KERNEL_SIZE 5
-        #define QUARTER_RES_BLUR_KERNEL_SIZE 6
+        #define GAUSS_BLUR_DEVIATION 1.5    
+        #define HALF_RES_BLUR_KERNEL_SIZE 6
+		#define THIRD_RES_BLUR_KERNEL_SIZE 4
+        #define QUARTER_RES_BLUR_KERNEL_SIZE 3
+		#define HALF_RES_BLUR_KERNEL_WEIGHT 5.5
+		#define THIRD_RES_BLUR_KERNEL_WEIGHT 3.5
+        #define QUARTER_RES_BLUR_KERNEL_WEIGHT 2.5
         //--------------------------------------------------------------------------------------------
 
 #include "UnityCG.cginc"	
+			#define HORIZONTALOFFSET float2(1, 0)
+			#define VERTICALOFFSET float2(0, 1)
 
         UNITY_DECLARE_TEX2D(_CameraDepthTexture);        
         UNITY_DECLARE_TEX2D(_Source);        
@@ -231,10 +236,10 @@ Shader "Hidden/BilateralBlur"
 		//-----------------------------------------------------------------------------------------
 		// BilateralBlur
 		//-----------------------------------------------------------------------------------------
-		float4 BilateralBlur(float2 uv, const int2 direction, Texture2D depth, SamplerState depthSampler, const int kernelRadius)
+		float4 BilateralBlur(float2 uv, const float2 direction, Texture2D depth, SamplerState depthSampler, const int kernelRadius, const float kernelWeight)
 		{
 			//const float deviation = kernelRadius / 2.5;
-			const float dev = kernelRadius / GAUSS_BLUR_DEVIATION; // make it really strong
+			const float dev = kernelWeight / GAUSS_BLUR_DEVIATION; // make it really strong
 			const float dev2 = dev * dev * 2;
 			const float2 deviation = float2(dev2, 1.0f / (dev2 * PI));
 			float4 centerColor = _MainTex.Sample(sampler_MainTex, uv);
@@ -342,34 +347,35 @@ Shader "Hidden/BilateralBlur"
 */
 		ENDCG
 
-		// pass 0 - horizontal blur (hires)
+
+		// pass 0 - horizontal blur (Quater)
 		Pass
 		{
 			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment horizontalFrag
+            #pragma vertex vert
+            #pragma fragment horizontalFrag
             #pragma target 5.0
-			
+
 			float4 horizontalFrag(v2f input) : SV_Target
-			{
-                return BilateralBlur(input.uv, int2(1, 0), _CameraDepthTexture, sampler_CameraDepthTexture, FULL_RES_BLUR_KERNEL_SIZE);
-			}
+		{
+            return BilateralBlur(input.uv, HORIZONTALOFFSET, _Source, sampler_Source, QUARTER_RES_BLUR_KERNEL_SIZE, QUARTER_RES_BLUR_KERNEL_WEIGHT);
+		}
 
 			ENDCG
 		}
 
-		// pass 1 - vertical blur (hires)
+		// pass 1 - vertical blur (Quater)
 		Pass
 		{
 			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment verticalFrag
+            #pragma vertex vert
+            #pragma fragment verticalFrag
             #pragma target 5.0
-			
+
 			float4 verticalFrag(v2f input) : SV_Target
-			{
-                return BilateralBlur(input.uv, int2(0, 1), _CameraDepthTexture, sampler_CameraDepthTexture, FULL_RES_BLUR_KERNEL_SIZE);
-			}
+		{
+            return BilateralBlur(input.uv, VERTICALOFFSET, _Source, sampler_Source, QUARTER_RES_BLUR_KERNEL_SIZE, QUARTER_RES_BLUR_KERNEL_WEIGHT);
+		}
 
 			ENDCG
 		}
@@ -384,7 +390,7 @@ Shader "Hidden/BilateralBlur"
 
 			float4 horizontalFrag(v2f input) : SV_Target
 		{
-            return BilateralBlur(input.uv, int2(1, 0), _Source, sampler_Source, HALF_RES_BLUR_KERNEL_SIZE);
+            return BilateralBlur(input.uv, HORIZONTALOFFSET, _Source, sampler_Source, HALF_RES_BLUR_KERNEL_SIZE, HALF_RES_BLUR_KERNEL_WEIGHT);
 		}
 
 			ENDCG
@@ -400,7 +406,7 @@ Shader "Hidden/BilateralBlur"
 
 			float4 verticalFrag(v2f input) : SV_Target
 		{
-            return BilateralBlur(input.uv, int2(0, 1), _Source, sampler_Source, HALF_RES_BLUR_KERNEL_SIZE);
+            return BilateralBlur(input.uv, VERTICALOFFSET, _Source, sampler_Source, HALF_RES_BLUR_KERNEL_SIZE, HALF_RES_BLUR_KERNEL_WEIGHT);
 		}
 
 			ENDCG
@@ -492,7 +498,7 @@ Shader "Hidden/BilateralBlur"
 			ENDCG
 		}
 
-		// pass 8 - horizontal blur (quarter res)
+		// pass 8 - horizontal blur (Third)
 		Pass
 		{
 			CGPROGRAM
@@ -501,14 +507,14 @@ Shader "Hidden/BilateralBlur"
             #pragma target 5.0
 
 			float4 horizontalFrag(v2f input) : SV_Target
-			{
-                return BilateralBlur(input.uv, int2(1, 0), _QuarterResDepthBuffer, sampler_QuarterResDepthBuffer, QUARTER_RES_BLUR_KERNEL_SIZE);
-			}
+		{
+            return BilateralBlur(input.uv, HORIZONTALOFFSET, _Source, sampler_Source, THIRD_RES_BLUR_KERNEL_SIZE, THIRD_RES_BLUR_KERNEL_WEIGHT);
+		}
 
 			ENDCG
 		}
 
-		// pass 9 - vertical blur (quarter res)
+		// pass 9 - vertical blur (Third)
 		Pass
 		{
 			CGPROGRAM
@@ -517,51 +523,9 @@ Shader "Hidden/BilateralBlur"
             #pragma target 5.0
 
 			float4 verticalFrag(v2f input) : SV_Target
-			{
-                return BilateralBlur(input.uv, int2(0, 1), _QuarterResDepthBuffer, sampler_QuarterResDepthBuffer, QUARTER_RES_BLUR_KERNEL_SIZE);
-			}
-
-			ENDCG
-		}
-
-		// pass 10 - downsample depth to half (fallback for DX10)
-		Pass
 		{
-			CGPROGRAM
-			#pragma vertex vertHalfDepth
-			#pragma fragment frag
-			#pragma target 5.0
-
-			v2fDownsample vertHalfDepth(appdata v)
-			{
-				return vertDownsampleDepth(v, _CameraDepthTexture_TexelSize);
-			}
-
-			float frag(v2fDownsample input) : SV_Target
-			{
-				return DownsampleDepth(input, _CameraDepthTexture, sampler_CameraDepthTexture);
-			}
-
-			ENDCG
+            return BilateralBlur(input.uv, VERTICALOFFSET, _Source, sampler_Source, THIRD_RES_BLUR_KERNEL_SIZE, THIRD_RES_BLUR_KERNEL_WEIGHT);
 		}
-
-		// pass 11 - downsample depth to quarter (fallback for DX10)
-		Pass
-		{
-			CGPROGRAM
-			#pragma vertex vertQuarterDepth
-			#pragma fragment frag
-			#pragma target 5.0
-
-			v2fDownsample vertQuarterDepth(appdata v)
-			{
-				return vertDownsampleDepth(v, _Source_TexelSize);
-			}
-
-			float frag(v2fDownsample input) : SV_Target
-			{
-				return DownsampleDepth(input, _Source, sampler_Source);
-			}
 
 			ENDCG
 		}

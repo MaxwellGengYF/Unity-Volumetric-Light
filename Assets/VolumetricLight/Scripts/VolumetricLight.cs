@@ -90,8 +90,8 @@ public class VolumetricLight : MonoBehaviour
         _cascadeShadowCommandBuffer.name = "Dir Light Command Buffer";
         _cascadeShadowCommandBuffer.SetGlobalTexture("_CascadeShadowMapTexture", UnityEngine.Rendering.BuiltinRenderTextureType.CurrentActive);
 
-            _light.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, _commandBuffer);
-            _light.AddCommandBuffer(LightEvent.AfterShadowMap, _cascadeShadowCommandBuffer);
+        _light.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, _commandBuffer);
+        _light.AddCommandBuffer(LightEvent.AfterShadowMap, _cascadeShadowCommandBuffer);
 
         Shader shader = Shader.Find("Sandbox/VolumetricLight");
         if (shader == null)
@@ -196,6 +196,7 @@ public class VolumetricLight : MonoBehaviour
         _MaxRayLength = Shader.PropertyToID("_MaxRayLength");
         _FrustumCorners = Shader.PropertyToID("_FrustumCorners");
         _DirectionalLightFlag = Shader.PropertyToID("_DirectionalLightFlag");
+        
     }
     /// <summary>
     /// Inits the set.
@@ -220,7 +221,7 @@ public class VolumetricLight : MonoBehaviour
             _material.DisableKeyword("HEIGHT_FOG");
         }
         InitdirectionalLight(renderer, viewProj);
-        
+
         VolumetricLightRenderer.PreRenderEvent -= initSet;
 
     }
@@ -249,11 +250,11 @@ public class VolumetricLight : MonoBehaviour
         //_material.EnableKeyword("MANUAL_ZTEST");
 #if UNITY_EDITOR
         if (debugMode)
-        initSet(renderer, viewProj);
+            initSet(renderer, viewProj);
 #endif
         SetupDirectionalLight(renderer, viewProj);
     }
-    
+
     private void InitdirectionalLight(VolumetricLightRenderer renderer, Matrix4x4 viewProj)
     {
         int pass = 4;
@@ -262,7 +263,7 @@ public class VolumetricLight : MonoBehaviour
             _material.EnableKeyword("NOISE");
         else
             _material.DisableKeyword("NOISE");
-        _material.SetFloat(_MaxRayLength , MaxRayLength);
+        _material.SetFloat(_MaxRayLength, MaxRayLength);
 
         if (_light.cookie == null)
         {
@@ -294,16 +295,15 @@ public class VolumetricLight : MonoBehaviour
 
         // setup frustum corners for world position reconstruction
         // bottom left
-        
-       _frustumCorners[0] = Camera.current.ViewportToWorldPoint(new Vector3(0, 0, Camera.current.farClipPlane));
-       // top left
-       _frustumCorners[2] = Camera.current.ViewportToWorldPoint(new Vector3(0, 1, Camera.current.farClipPlane));
-       // top right
-       _frustumCorners[3] = Camera.current.ViewportToWorldPoint(new Vector3(1, 1, Camera.current.farClipPlane));
-       // bottom right
-       _frustumCorners[1] = Camera.current.ViewportToWorldPoint(new Vector3(1, 0, Camera.current.farClipPlane));
 
-    
+        _frustumCorners[0] = Camera.current.ViewportToWorldPoint(new Vector3(0, 0, Camera.current.farClipPlane));
+        // top left
+        _frustumCorners[2] = Camera.current.ViewportToWorldPoint(new Vector3(0, 1, Camera.current.farClipPlane));
+        // top right
+        _frustumCorners[3] = Camera.current.ViewportToWorldPoint(new Vector3(1, 1, Camera.current.farClipPlane));
+        // bottom right
+        _frustumCorners[1] = Camera.current.ViewportToWorldPoint(new Vector3(1, 0, Camera.current.farClipPlane));
+
         _material.SetVectorArray(_FrustumCorners, _frustumCorners);
 
         if (_light.shadows != LightShadows.None)
