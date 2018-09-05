@@ -11,8 +11,8 @@ GraphicsSettings:
     m_Mode: 1
     m_Shader: {fileID: 74, guid: 0000000000000000f000000000000000, type: 0}
   m_ScreenSpaceShadows:
-    m_Mode: 2
-    m_Shader: {fileID: 4800000, guid: df2173e1b8b50954787ec484f3f58e38, type: 3}
+    m_Mode: 1
+    m_Shader: {fileID: 64, guid: 0000000000000000f000000000000000, type: 0}
   m_LegacyDeferred:
     m_Mode: 1
     m_Shader: {fileID: 63, guid: 0000000000000000f000000000000000, type: 0}

@@ -184,6 +184,11 @@ Prefab:
       propertyPath: m_BackGroundColor.b
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114291978714229516, guid: 66cd379bdfe78df4b86250c88e2bfd8f,
+        type: 2}
+      propertyPath: resolution
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 66cd379bdfe78df4b86250c88e2bfd8f, type: 2}
@@ -237,7 +242,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07475e299cbd4824ea72f26b86369547, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resolution: 1
+  resolution: 4
   DefaultSpotCookie: {fileID: 2800000, guid: 5679204bf3b8d4d459ed25afd9a51301, type: 3}
 --- !u!81 &3634925
 AudioListener:
@@ -1692,7 +1697,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   intensity: 0.3
-  SampleCount: 64
+  SampleCount: 256
   SkyboxExtinctionCoef: 0
   MieG: 0
   HeightFog: 0
