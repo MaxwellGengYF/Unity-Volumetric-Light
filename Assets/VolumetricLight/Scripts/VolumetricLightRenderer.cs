@@ -234,6 +234,10 @@ public class VolumetricLightRenderer : MonoBehaviour
                 blurPass = new Vector2Int(0, 1);
                 break;
         }
+        Vector2 jitter;
+        jitter.x = 0.5f / _camera.pixelWidth;
+        jitter.y = 0.5f / _camera.pixelHeight;
+        Shader.SetGlobalVector(_JitterOffset, jitter);
     }
 
     /// <summary>
@@ -297,10 +301,6 @@ public class VolumetricLightRenderer : MonoBehaviour
     {
         int width = _halfVolumeLightTexture.width;
         int height = _halfVolumeLightTexture.height;
-        Vector2 jitter;
-        jitter.x = UnityEngine.Random.Range(-1f, 1f) / (int)_currentResolution / width;
-        jitter.y = UnityEngine.Random.Range(-1f, 1f) / (int)_currentResolution / height;
-        Shader.SetGlobalVector(_JitterOffset, jitter);
         Shader.SetGlobalVector(_RandomNumber, new Vector2(UnityEngine.Random.Range(0f, 1000f), Vector3.Dot(Vector3.Cross(transform.position, transform.eulerAngles), Vector3.one)));
         Matrix4x4 proj = GL.GetGPUProjectionMatrix(Camera.current.projectionMatrix, true);
         _viewProj = proj * _camera.worldToCameraMatrix;

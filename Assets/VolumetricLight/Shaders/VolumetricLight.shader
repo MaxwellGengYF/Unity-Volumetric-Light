@@ -202,6 +202,7 @@ Shader "Sandbox/VolumetricLight"
 		//-----------------------------------------------------------------------------------------
 		#define MieScattering(cosAngle, g) g.w * (g.x / (pow(g.y - g.z * cosAngle, 1.5)))
 		#define random(seed) sin(seed * float2(641.5467987313875, 3154.135764) + float2(1.943856175, 631.543147))
+		#define highQualityRandom(seed) cos(sin(seed * float2(641.5467987313875, 3154.135764) + float2(1.943856175, 631.543147)) * float2(4635.4668457, 84796.1653) + float2(6485.15686, 1456.3574563))
 		float2 _RandomNumber;
 		//-----------------------------------------------------------------------------------------
 		// RayMarch
@@ -573,7 +574,6 @@ Shader "Sandbox/VolumetricLight"
 			{
 				float4 pos : SV_POSITION;
 				float2 uv : TEXCOORD0;
-				float3 wpos : TEXCOORD1;
 			};
 			float2 _JitterOffset;			
 			PSInput vertDir(VSInput i)
@@ -581,19 +581,21 @@ Shader "Sandbox/VolumetricLight"
 				PSInput o;
 
 				o.pos = UnityObjectToClipPos(i.vertex);
-				o.uv = i.uv + _JitterOffset;
-				float3 down = lerp(_FrustumCorners[0], _FrustumCorners[1], o.uv.x);
-				float3 up = lerp(_FrustumCorners[2], _FrustumCorners[3], o.uv.x);
-				o.wpos = lerp(down, up, o.uv.y);
+				o.uv = i.uv;
+
 				return o;
 			}
 		
 			float4 fragDir(PSInput i) : SV_Target
 			{
 				float2 uv = i.uv;
+				float2 randomOffset = highQualityRandom((_ScreenParams.y * uv.y + uv.x) * _ScreenParams.x + _RandomNumber) * _JitterOffset;
+				uv += randomOffset;
 				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
 				float linearDepth = Linear01Depth(depth);
-				float3 wpos = i.wpos;
+				float3 down = lerp(_FrustumCorners[0], _FrustumCorners[1], uv.x);
+				float3 up = lerp(_FrustumCorners[2], _FrustumCorners[3], uv.x);
+				float3 wpos = lerp(down, up, uv.y);
 				float3 rayDir = wpos - _WorldSpaceCameraPos;				
 				rayDir *= linearDepth;
 
