@@ -235,8 +235,8 @@ public class VolumetricLightRenderer : MonoBehaviour
                 break;
         }
         Vector2 jitter;
-        jitter.x = 0.5f / _halfVolumeLightTexture.width;
-        jitter.y = 0.5f / _halfVolumeLightTexture.height;
+        jitter.x = 0.25f / _halfVolumeLightTexture.width;
+        jitter.y = 0.25f / _halfVolumeLightTexture.height;
         Shader.SetGlobalVector(_JitterOffset, jitter);
     }
 

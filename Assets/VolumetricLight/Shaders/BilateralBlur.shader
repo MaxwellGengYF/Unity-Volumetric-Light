@@ -50,12 +50,12 @@ Shader "Hidden/BilateralBlur"
         #define UPSAMPLE_DEPTH_THRESHOLD 1.5f
         #define BLUR_DEPTH_FACTOR 0.5
         #define GAUSS_BLUR_DEVIATION 1.5    
-        #define HALF_RES_BLUR_KERNEL_SIZE 6
-		#define THIRD_RES_BLUR_KERNEL_SIZE 4
-        #define QUARTER_RES_BLUR_KERNEL_SIZE 3
-		#define HALF_RES_BLUR_KERNEL_WEIGHT 5.5
-		#define THIRD_RES_BLUR_KERNEL_WEIGHT 3.5
-        #define QUARTER_RES_BLUR_KERNEL_WEIGHT 2.5
+        #define HALF_RES_BLUR_KERNEL_SIZE 4
+		#define THIRD_RES_BLUR_KERNEL_SIZE 3
+        #define QUARTER_RES_BLUR_KERNEL_SIZE 2
+		#define HALF_RES_BLUR_KERNEL_WEIGHT 3.5
+		#define THIRD_RES_BLUR_KERNEL_WEIGHT 2.5
+        #define QUARTER_RES_BLUR_KERNEL_WEIGHT 1.5
         //--------------------------------------------------------------------------------------------
 
 #include "UnityCG.cginc"	

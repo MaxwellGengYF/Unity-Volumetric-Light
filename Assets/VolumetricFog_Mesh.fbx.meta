@@ -1,0 +1,212 @@
+fileFormatVersion: 2
+guid: 6550cbde48b747247af71842c677fb81
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: VolumetricTestMesh
+    100004: VolumetricTestMesh1
+    100006: VolumetricTestMesh10
+    100008: VolumetricTestMesh11
+    100010: VolumetricTestMesh12
+    100012: VolumetricTestMesh13
+    100014: VolumetricTestMesh14
+    100016: VolumetricTestMesh15
+    100018: VolumetricTestMesh16
+    100020: VolumetricTestMesh17
+    100022: VolumetricTestMesh18
+    100024: VolumetricTestMesh19
+    100026: VolumetricTestMesh2
+    100028: VolumetricTestMesh20
+    100030: VolumetricTestMesh21
+    100032: VolumetricTestMesh22
+    100034: VolumetricTestMesh23
+    100036: VolumetricTestMesh3
+    100038: VolumetricTestMesh4
+    100040: VolumetricTestMesh5
+    100042: VolumetricTestMesh6
+    100044: VolumetricTestMesh7
+    100046: VolumetricTestMesh8
+    100048: VolumetricTestMesh9
+    400000: //RootNode
+    400002: VolumetricTestMesh
+    400004: VolumetricTestMesh1
+    400006: VolumetricTestMesh10
+    400008: VolumetricTestMesh11
+    400010: VolumetricTestMesh12
+    400012: VolumetricTestMesh13
+    400014: VolumetricTestMesh14
+    400016: VolumetricTestMesh15
+    400018: VolumetricTestMesh16
+    400020: VolumetricTestMesh17
+    400022: VolumetricTestMesh18
+    400024: VolumetricTestMesh19
+    400026: VolumetricTestMesh2
+    400028: VolumetricTestMesh20
+    400030: VolumetricTestMesh21
+    400032: VolumetricTestMesh22
+    400034: VolumetricTestMesh23
+    400036: VolumetricTestMesh3
+    400038: VolumetricTestMesh4
+    400040: VolumetricTestMesh5
+    400042: VolumetricTestMesh6
+    400044: VolumetricTestMesh7
+    400046: VolumetricTestMesh8
+    400048: VolumetricTestMesh9
+    2100000: GreyBox_ao
+    2100002: Glass
+    2300000: VolumetricTestMesh
+    2300002: VolumetricTestMesh1
+    2300004: VolumetricTestMesh10
+    2300006: VolumetricTestMesh11
+    2300008: VolumetricTestMesh12
+    2300010: VolumetricTestMesh13
+    2300012: VolumetricTestMesh14
+    2300014: VolumetricTestMesh15
+    2300016: VolumetricTestMesh16
+    2300018: VolumetricTestMesh17
+    2300020: VolumetricTestMesh18
+    2300022: VolumetricTestMesh19
+    2300024: VolumetricTestMesh2
+    2300026: VolumetricTestMesh20
+    2300028: VolumetricTestMesh21
+    2300030: VolumetricTestMesh22
+    2300032: VolumetricTestMesh23
+    2300034: VolumetricTestMesh3
+    2300036: VolumetricTestMesh4
+    2300038: VolumetricTestMesh5
+    2300040: VolumetricTestMesh6
+    2300042: VolumetricTestMesh7
+    2300044: VolumetricTestMesh8
+    2300046: VolumetricTestMesh9
+    3300000: VolumetricTestMesh
+    3300002: VolumetricTestMesh1
+    3300004: VolumetricTestMesh10
+    3300006: VolumetricTestMesh11
+    3300008: VolumetricTestMesh12
+    3300010: VolumetricTestMesh13
+    3300012: VolumetricTestMesh14
+    3300014: VolumetricTestMesh15
+    3300016: VolumetricTestMesh16
+    3300018: VolumetricTestMesh17
+    3300020: VolumetricTestMesh18
+    3300022: VolumetricTestMesh19
+    3300024: VolumetricTestMesh2
+    3300026: VolumetricTestMesh20
+    3300028: VolumetricTestMesh21
+    3300030: VolumetricTestMesh22
+    3300032: VolumetricTestMesh23
+    3300034: VolumetricTestMesh3
+    3300036: VolumetricTestMesh4
+    3300038: VolumetricTestMesh5
+    3300040: VolumetricTestMesh6
+    3300042: VolumetricTestMesh7
+    3300044: VolumetricTestMesh8
+    3300046: VolumetricTestMesh9
+    4300000: VolumetricTestMesh13
+    4300002: VolumetricTestMesh18
+    4300004: VolumetricTestMesh17
+    4300006: VolumetricTestMesh14
+    4300008: VolumetricTestMesh20
+    4300010: VolumetricTestMesh12
+    4300012: VolumetricTestMesh10
+    4300014: VolumetricTestMesh11
+    4300016: VolumetricTestMesh19
+    4300018: VolumetricTestMesh
+    4300020: VolumetricTestMesh21
+    4300022: VolumetricTestMesh22
+    4300024: VolumetricTestMesh23
+    4300026: VolumetricTestMesh9
+    4300028: VolumetricTestMesh8
+    4300030: VolumetricTestMesh7
+    4300032: VolumetricTestMesh6
+    4300034: VolumetricTestMesh5
+    4300036: VolumetricTestMesh1
+    4300038: VolumetricTestMesh4
+    4300040: VolumetricTestMesh3
+    4300042: VolumetricTestMesh15
+    4300044: VolumetricTestMesh2
+    4300046: VolumetricTestMesh16
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
