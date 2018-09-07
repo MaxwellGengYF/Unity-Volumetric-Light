@@ -51,12 +51,6 @@ public class VolumetricLight : MonoBehaviour
     [Range(0, 0.5f)]
     public float HeightScale = 0.10f;
     public float GroundLevel = 0;
-    public bool Noise = false;
-    public float NoiseScale = 0.015f;
-    public float NoiseIntensity = 1.0f;
-    public float NoiseIntensityOffset = 0.3f;
-    public Vector2 NoiseVelocity = new Vector2(3.0f, 3.0f);
-
     [Tooltip("")]
     public float MaxRayLength = 400.0f;
 
@@ -204,8 +198,6 @@ public class VolumetricLight : MonoBehaviour
     private void initSet(VolumetricLightRenderer renderer, Matrix4x4 viewProj)
     {
         _material.SetInt(_SampleCount, SampleCount);
-        _material.SetVector(_NoiseVelocity, new Vector4(NoiseVelocity.x, NoiseVelocity.y) * NoiseScale);
-        _material.SetVector(_NoiseData, new Vector4(NoiseScale, NoiseIntensity, NoiseIntensityOffset));
         _material.SetVector(_MieG, new Vector4(1 - (MieG * MieG), 1 + (MieG * MieG), 2 * MieG, 1.0f / (4.0f * Mathf.PI)));
         _material.SetVector(_VolumetricLight, new Vector4(0, 0, _light.range, 1.0f - SkyboxExtinctionCoef));
         _material.SetTexture(_CameraDepthTexture, renderer.volumeDepthTexture);
@@ -259,10 +251,7 @@ public class VolumetricLight : MonoBehaviour
     {
         int pass = 4;
         _material.SetPass(pass);
-        if (Noise)
-            _material.EnableKeyword("NOISE");
-        else
-            _material.DisableKeyword("NOISE");
+
         _material.SetFloat(_MaxRayLength, MaxRayLength);
 
         if (_light.cookie == null)
