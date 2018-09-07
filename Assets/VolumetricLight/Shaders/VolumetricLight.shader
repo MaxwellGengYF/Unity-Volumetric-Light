@@ -226,7 +226,6 @@ Shader "Sandbox/VolumetricLight"
 			{
 				seed = random(seed);
 				float lerpValue = i + seed.y* step.y + seed.x * step.z;
-				lerpValue *= lerpValue;
 				float3 currentPosition = lerp(rayStart, final, lerpValue);
 				float atten = GetLightAttenuation(currentPosition);
 				float4 light = atten;

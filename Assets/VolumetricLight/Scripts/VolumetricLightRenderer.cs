@@ -36,11 +36,11 @@ using System;
 public class VolumetricLightRenderer : MonoBehaviour
 {
     Vector2Int blurPass;
-    public enum VolumtericResolution
+    public enum DownSample
     {
-        Half = 2,
-        Third = 3,
-        Quater = 4
+        x2 = 2,
+        x3 = 3,
+        x4 = 4
     };
     public static event Action<VolumetricLightRenderer> onImageEvent;
     public static event Action<VolumetricLightRenderer, Matrix4x4> PreRenderEvent;
@@ -60,8 +60,8 @@ public class VolumetricLightRenderer : MonoBehaviour
     private static Texture _defaultSpotCookie;
 
     private RenderTexture _halfDepthBuffer;
-    private VolumtericResolution _currentResolution;
-    public VolumtericResolution resolution = VolumtericResolution.Half;
+    private DownSample _currentResolution;
+    public DownSample downSample = DownSample.x2;
     private Texture2D _ditheringTexture;
     private Texture3D _noiseTexture;
     public Texture DefaultSpotCookie;
@@ -132,7 +132,7 @@ public class VolumetricLightRenderer : MonoBehaviour
     /// </summary>
     void Awake()
     {
-        _currentResolution = resolution;
+        
         _camera = GetComponent<Camera>();
         if (_camera.actualRenderingPath == RenderingPath.Forward)
             _camera.depthTextureMode = DepthTextureMode.Depth;
@@ -179,7 +179,7 @@ public class VolumetricLightRenderer : MonoBehaviour
 
         onPreRenderAction = () =>
         {
-            // down sample depth to half res
+            // down sample depth to x2 res
             _preLightPass.Blit(null, _halfDepthBuffer, _bilateralBlurMaterial, 4);
             _preLightPass.SetRenderTarget(_halfVolumeLightTexture);
         };
@@ -187,9 +187,9 @@ public class VolumetricLightRenderer : MonoBehaviour
         {
             RenderTexture temp = RenderTexture.GetTemporary(_halfVolumeLightTexture.width, _halfVolumeLightTexture.height, 0, RenderTextureFormat.ARGBHalf);
             temp.filterMode = FilterMode.Bilinear;
-            // horizontal bilateral blur at half res
+            // horizontal bilateral blur at x2 res
             Graphics.Blit(_halfVolumeLightTexture, temp, _bilateralBlurMaterial, blurPass.x);
-            // vertical bilateral blur at half res
+            // vertical bilateral blur at x2 res
             Graphics.Blit(temp, _halfVolumeLightTexture, _bilateralBlurMaterial, blurPass.y);
             // upscale to full res
             Graphics.Blit(_halfVolumeLightTexture, _volumeLightTexture, _bilateralBlurMaterial, 5);
@@ -224,10 +224,10 @@ public class VolumetricLightRenderer : MonoBehaviour
     {
         switch (_currentResolution)
         {
-            case VolumtericResolution.Half:
+            case DownSample.x2:
                 blurPass = new Vector2Int(2, 3);
                 break;
-            case VolumtericResolution.Third:
+            case DownSample.x3:
                 blurPass = new Vector2Int(8, 9);
                 break;
             default:
@@ -235,8 +235,8 @@ public class VolumetricLightRenderer : MonoBehaviour
                 break;
         }
         Vector2 jitter;
-        jitter.x = 0.25f / _halfVolumeLightTexture.width;
-        jitter.y = 0.25f / _halfVolumeLightTexture.height;
+        jitter.x = 0.25f / _camera.pixelWidth;
+        jitter.y = 0.25f / _camera.pixelHeight;
         Shader.SetGlobalVector(_JitterOffset, jitter);
     }
 
@@ -245,6 +245,7 @@ public class VolumetricLightRenderer : MonoBehaviour
     /// </summary>
     void ChangeResolution()
     {
+        _currentResolution = downSample;
         int width = _camera.pixelWidth;
         int height = _camera.pixelHeight;
 
@@ -273,6 +274,7 @@ public class VolumetricLightRenderer : MonoBehaviour
 
     void ReChangeResolution()
     {
+        _currentResolution = downSample;
         int width = _camera.pixelWidth;
         int height = _camera.pixelHeight;
 
