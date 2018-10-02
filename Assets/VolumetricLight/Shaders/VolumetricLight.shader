@@ -46,7 +46,6 @@ Shader "Sandbox/VolumetricLight"
 		#include "VolumetricShadowLibrary.cginc"
 		#include "UnityDeferredLibrary.cginc"
 
-		float4 _FrustumCorners[4];
 		float4 _LightFinalColor;
 		struct appdata
 		{
@@ -57,6 +56,7 @@ Shader "Sandbox/VolumetricLight"
 		float4x4 _MyLightMatrix0;
 		float4x4 _MyWorld2Shadow;
 		float3 _CameraForward;
+		float4x4 _InvVP;
 
 		// x: scattering coef, y: extinction coef, z: range w: skybox extinction coef
 		float4 _VolumetricLight;
@@ -207,7 +207,7 @@ Shader "Sandbox/VolumetricLight"
 		//-----------------------------------------------------------------------------------------
 		// RayMarch
 		//-----------------------------------------------------------------------------------------
-		float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLength)
+		float4 RayMarch(float2 screenPos, float3 rayStart, float3 final, float3 rayDir)
 		{
 			float4 vlight = 0;
 
@@ -217,7 +217,7 @@ Shader "Sandbox/VolumetricLight"
 #else
 			// we don't know about density between camera and light's volume, assume 0.5
 #endif
-			float3 final = rayStart + rayDir * rayLength;
+			//float3 final = rayStart + rayDir * rayLength;
 			float3 step = 1.0 / _SampleCount;
 			step.yz *= float2(0.25, 0.2);
 			float2 seed = random((_ScreenParams.y * screenPos.y + screenPos.x) * _ScreenParams.x + _RandomNumber);
@@ -235,20 +235,8 @@ Shader "Sandbox/VolumetricLight"
 #ifdef HEIGHT_FOG
 		ApplyHeightFog(currentPosition, light);
 #endif
-//#if PHASE_FUNCTOIN
-#if !defined (DIRECTIONAL) && !defined (DIRECTIONAL_COOKIE)
-			float extinction = -length(_WorldSpaceCameraPos - currentPosition) * 0.005;
-			extinction = exp(-extinction);
-				light *= extinction;
-				// phase functino for spot and point lights
-                float3 tolight = normalize(currentPosition - _LightPos.xyz);
-                cosAngle = dot(tolight, -rayDir);
-				light *= MieScattering(cosAngle, _MieG);
-#endif          
-//#endif
 				vlight += light;				
 			}
-			vlight *= rayLength;
 
 #if defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE)
 			// apply phase function for dir light
@@ -313,230 +301,6 @@ Shader "Sandbox/VolumetricLight"
 		}
 
 		ENDCG
-
-		// pass 0 - point light, camera inside
-		Pass
-		{
-			ZTest Off
-			Cull Front
-			ZWrite Off
-			Blend One One
-
-			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment fragPointInside
-			#pragma target 4.0
-
-			#define UNITY_HDR_ON
-
-			#pragma shader_feature HEIGHT_FOG
-			#pragma shader_feature NOISE
-			#pragma shader_feature SHADOWS_CUBE
-			#pragma shader_feature POINT_COOKIE
-			#pragma shader_feature POINT
-
-			#ifdef SHADOWS_DEPTH
-			
-			#endif
-						
-			
-			float4 fragPointInside(v2f i) : SV_Target
-			{	
-				float2 uv = i.uv.xy / i.uv.w;
-
-				// read depth and reconstruct world position
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);			
-
-				float3 rayStart = _WorldSpaceCameraPos;
-				float3 rayEnd = i.wpos;
-
-				float3 rayDir = (rayEnd - rayStart);
-				float rayLength = length(rayDir);
-
-				rayDir /= rayLength;
-
-				float linearDepth = LinearEyeDepth(depth);
-				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
-				rayLength = min(rayLength, projectedDepth);
-				
-				return RayMarch(i.pos.xy, rayStart, rayDir, rayLength);
-			}
-			ENDCG
-		}
-
-		// pass 1 - spot light, camera inside
-		Pass
-		{
-			ZTest Off
-			Cull Front
-			ZWrite Off
-			Blend One One
-
-			CGPROGRAM
-#pragma vertex vert
-#pragma fragment fragPointInside
-#pragma target 4.0
-
-#define UNITY_HDR_ON
-
-#pragma shader_feature HEIGHT_FOG
-#pragma shader_feature NOISE
-#pragma multi_compile SHADOWS_DEPTH_OFF SHADOWS_DEPTH_ON
-#pragma shader_feature SPOT
-
-#ifdef SHADOWS_DEPTH
-
-#endif
-
-			float4 fragPointInside(v2f i) : SV_Target
-			{
-				float2 uv = i.uv.xy / i.uv.w;
-
-				// read depth and reconstruct world position
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
-
-				float3 rayStart = _WorldSpaceCameraPos;
-				float3 rayEnd = i.wpos;
-
-				float3 rayDir = (rayEnd - rayStart);
-				float rayLength = length(rayDir);
-
-				rayDir /= rayLength;
-
-				float linearDepth = LinearEyeDepth(depth);
-				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
-				rayLength = min(rayLength, projectedDepth);
-
-				return RayMarch(i.pos.xy, rayStart, rayDir, rayLength);
-			}
-			ENDCG
-		}
-
-		// pass 2 - point light, camera outside
-		Pass
-		{
-			//ZTest Off
-			ZTest [_ZTest]
-			Cull Back
-			ZWrite Off
-			Blend One One
-
-			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment fragPointOutside
-			#pragma target 4.0
-
-			#define UNITY_HDR_ON
-
-			#pragma shader_feature HEIGHT_FOG
-			#pragma shader_feature SHADOWS_CUBE
-			#pragma shader_feature NOISE
-			//#pragma multi_compile POINT POINT_COOKIE
-			#pragma shader_feature POINT_COOKIE
-			#pragma shader_feature POINT
-
-			float4 fragPointOutside(v2f i) : SV_Target
-			{
-				float2 uv = i.uv.xy / i.uv.w;
-
-				// read depth and reconstruct world position
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
-			
-				float3 rayStart = _WorldSpaceCameraPos;
-				float3 rayEnd = i.wpos;
-
-				float3 rayDir = (rayEnd - rayStart);
-				float rayLength = length(rayDir);
-
-				rayDir /= rayLength;
-
-				float3 lightToCamera = _WorldSpaceCameraPos - _LightPos;
-
-				float b = dot(rayDir, lightToCamera);
-				float c = dot(lightToCamera, lightToCamera) - (_VolumetricLight.z * _VolumetricLight.z);
-
-				float d = sqrt((b*b) - c);
-				float start = -b - d;
-				float end = -b + d;
-
-				float linearDepth = LinearEyeDepth(depth);
-				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
-				end = min(end, projectedDepth);
-
-				rayStart = rayStart + rayDir * start;
-				rayLength = end - start;
-
-				return RayMarch(i.pos.xy, rayStart, rayDir, rayLength);
-			}
-			ENDCG
-		}
-				
-		// pass 3 - spot light, camera outside
-		Pass
-		{
-			//ZTest Off
-			ZTest[_ZTest]
-			Cull Back
-			ZWrite Off
-			Blend One One
-
-			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment fragSpotOutside
-			#pragma target 4.0
-
-			#define UNITY_HDR_ON
-
-			#pragma shader_feature HEIGHT_FOG
-			#pragma multi_compile SHADOWS_DEPTH_OFF SHADOWS_DEPTH_ON
-			#pragma shader_feature NOISE
-			#pragma shader_feature SPOT
-
-			#ifdef SHADOWS_DEPTH
-			
-			#endif
-			
-			float _CosAngle;
-			float4 _ConeAxis;
-			float4 _ConeApex;
-			float _PlaneD;
-
-			float4 fragSpotOutside(v2f i) : SV_Target
-			{
-				float2 uv = i.uv.xy / i.uv.w;
-
-				// read depth and reconstruct world position
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
-
-				float3 rayEnd = i.wpos;
-
-				float3 rayDir = (rayEnd - _WorldSpaceCameraPos);
-				float rayLength = length(rayDir);
-
-				rayDir /= rayLength;
-
-
-				// inside cone
-				float3 r1 = rayEnd + rayDir * 0.001;
-
-				// plane intersection
-				float planeCoord = RayPlaneIntersect(_ConeAxis, _PlaneD, r1, rayDir);
-				// ray cone intersection
-				float2 lineCoords = RayConeIntersect(_ConeApex, _ConeAxis, _CosAngle, r1, rayDir);
-
-				float linearDepth = LinearEyeDepth(depth);
-				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
-
-				float z = (projectedDepth - rayLength);
-				rayLength = min(planeCoord, min(lineCoords.x, lineCoords.y));
-				rayLength = min(rayLength, z);
-
-				return RayMarch(i.pos.xy, rayEnd, rayDir, rayLength);
-			}
-			ENDCG
-		}		
-
-		// pass 4 - directional light
 		Pass
 		{
 			ZTest Off
@@ -591,21 +355,16 @@ Shader "Sandbox/VolumetricLight"
 				float2 randomOffset = highQualityRandom((_ScreenParams.y * uv.y + uv.x) * _ScreenParams.x + _RandomNumber) * _JitterOffset;
 				uv += randomOffset;
 				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
-				float linearDepth = Linear01Depth(depth);
-				float3 down = lerp(_FrustumCorners[0], _FrustumCorners[1], uv.x);
-				float3 up = lerp(_FrustumCorners[2], _FrustumCorners[3], uv.x);
-				float3 wpos = lerp(down, up, uv.y);
-				float3 rayDir = wpos - _WorldSpaceCameraPos;				
-				rayDir *= linearDepth;
-
+				float4 wpos = mul(_InvVP, float4(uv * 2 -1,depth, 1));
+				wpos /= wpos.w;
+				float3 rayDir = wpos.xyz - _WorldSpaceCameraPos;
 				float rayLength = length(rayDir);
 				rayDir /= rayLength;
-
 				rayLength = min(rayLength, _MaxRayLength);
+				float3 final = _WorldSpaceCameraPos + rayDir * rayLength;
+				float4 color = RayMarch(uv, _WorldSpaceCameraPos, final, rayDir);
 
-				float4 color = RayMarch(uv, _WorldSpaceCameraPos, rayDir, rayLength);
-
-				if (linearDepth > 0.9999)
+				if (Linear01Depth(depth) > 0.9999)
 				{
 					color.rgb *= _VolumetricLight.w;
 				}

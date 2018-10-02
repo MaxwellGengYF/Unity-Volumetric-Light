@@ -51,11 +51,11 @@ Shader "Hidden/BilateralBlur"
         #define BLUR_DEPTH_FACTOR 0.5
         #define GAUSS_BLUR_DEVIATION 1.5    
         #define HALF_RES_BLUR_KERNEL_SIZE 6
-		#define THIRD_RES_BLUR_KERNEL_SIZE 4
-        #define QUARTER_RES_BLUR_KERNEL_SIZE 3
+		#define THIRD_RES_BLUR_KERNEL_SIZE 5
+        #define QUARTER_RES_BLUR_KERNEL_SIZE 4
 		#define HALF_RES_BLUR_KERNEL_WEIGHT 5.5
-		#define THIRD_RES_BLUR_KERNEL_WEIGHT 3.5
-        #define QUARTER_RES_BLUR_KERNEL_WEIGHT 2.5
+		#define THIRD_RES_BLUR_KERNEL_WEIGHT 4.5
+        #define QUARTER_RES_BLUR_KERNEL_WEIGHT 3.5
         //--------------------------------------------------------------------------------------------
 
 #include "UnityCG.cginc"	

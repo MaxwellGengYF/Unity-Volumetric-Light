@@ -51,9 +51,6 @@ public class VolumetricLight : MonoBehaviour
     [Range(0, 0.5f)]
     public float HeightScale = 0.10f;
     public float GroundLevel = 0;
-    [Tooltip("")]
-    public float MaxRayLength = 400.0f;
-
     public Light Light { get { return _light; } }
     public Material VolumetricMaterial { get { return _material; } }
 
@@ -160,7 +157,7 @@ public class VolumetricLight : MonoBehaviour
     static int _ConeAxis;
     static int _MyWorld2Shadow;
     static int _LightDir;
-    static int _MaxRayLength;
+    
     static int _FrustumCorners;
     static int _DirectionalLightFlag;
     static void InitVariable()
@@ -187,7 +184,7 @@ public class VolumetricLight : MonoBehaviour
         _ConeAxis = Shader.PropertyToID("_ConeAxis");
         _MyWorld2Shadow = Shader.PropertyToID("_MyWorld2Shadow");
         _LightDir = Shader.PropertyToID("_LightDir");
-        _MaxRayLength = Shader.PropertyToID("_MaxRayLength");
+        
         _FrustumCorners = Shader.PropertyToID("_FrustumCorners");
         _DirectionalLightFlag = Shader.PropertyToID("_DirectionalLightFlag");
         
@@ -249,11 +246,6 @@ public class VolumetricLight : MonoBehaviour
 
     private void InitdirectionalLight(VolumetricLightRenderer renderer, Matrix4x4 viewProj)
     {
-        int pass = 4;
-        _material.SetPass(pass);
-
-        _material.SetFloat(_MaxRayLength, MaxRayLength);
-
         if (_light.cookie == null)
         {
             _material.EnableKeyword("DIRECTIONAL");
@@ -277,30 +269,15 @@ public class VolumetricLight : MonoBehaviour
     {
         _commandBuffer.Clear();
 
-        int pass = 4;
         Vector3 forwd = _light.transform.forward;
         _material.SetVector(_LightDir, new Vector4(forwd.x, forwd.y, forwd.z, 1.0f / (_light.range * _light.range)));
         _material.SetVector(_LightFinalColor, _light.color * _light.intensity * intensity * (1f / SampleCount));
-
-        // setup frustum corners for world position reconstruction
-        // bottom left
-
-        _frustumCorners[0] = Camera.current.ViewportToWorldPoint(new Vector3(0, 0, Camera.current.farClipPlane));
-        // top left
-        _frustumCorners[2] = Camera.current.ViewportToWorldPoint(new Vector3(0, 1, Camera.current.farClipPlane));
-        // top right
-        _frustumCorners[3] = Camera.current.ViewportToWorldPoint(new Vector3(1, 1, Camera.current.farClipPlane));
-        // bottom right
-        _frustumCorners[1] = Camera.current.ViewportToWorldPoint(new Vector3(1, 0, Camera.current.farClipPlane));
-
-        _material.SetVectorArray(_FrustumCorners, _frustumCorners);
-
         if (_light.shadows != LightShadows.None)
         {
             _commandBuffer.SetGlobalFloat(_DirectionalLightFlag, 1);
 
             _commandBuffer.EnableShaderKeyword("SHADOWS_DEPTH_ON");
-            _commandBuffer.Blit(null, renderer.volumeLightTexture, _material, pass);
+            _commandBuffer.Blit(null, renderer.volumeLightTexture, _material, 0);
         }
     }
 
@@ -309,7 +286,7 @@ public class VolumetricLight : MonoBehaviour
         if (Shader.GetGlobalFloat(_DirectionalLightFlag) < 0.5f)
         {
 
-            Graphics.Blit(null, renderer.volumeLightTexture, _material, 4);
+            Graphics.Blit(null, renderer.volumeLightTexture, _material, 0);
         }
         else
         {

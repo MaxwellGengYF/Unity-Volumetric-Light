@@ -71,11 +71,19 @@ ENDCG
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma target 5.0
+			sampler2D _CameraDepthTexture;
+			float _MaxRayLength;
+			float4x4 _InvVP;
 			void frag(v2f i, out float4 source : SV_Target)
 			{
 				float4 main = tex2D(_MainTex, i.texcoord);
+				float depth = tex2D(_CameraDepthTexture, i.texcoord);
+				float4 worldPos = mul(_InvVP, float4(i.texcoord * 2 - 1, depth, 1));
+				worldPos /= worldPos.w;
+				float dist = distance(worldPos.xyz, _WorldSpaceCameraPos);
+				dist = min(dist, _MaxRayLength);
 				source = tex2D(_Source, i.texcoord);
-				source.xyz += main.xyz;
+				source.xyz += main.xyz * dist;
 			}
 			ENDCG
 		}
