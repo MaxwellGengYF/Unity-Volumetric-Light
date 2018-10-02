@@ -192,7 +192,7 @@ public class VolumetricLightRenderer : MonoBehaviour
 
         _volumeLightTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBHalf);
         _volumeLightTexture.name = "VolumeLightBuffer";
-        _volumeLightTexture.filterMode = FilterMode.Point;
+        _volumeLightTexture.filterMode = FilterMode.Bilinear;
 
         if (_halfDepthBuffer != null)
             Destroy(_halfDepthBuffer);
@@ -201,12 +201,12 @@ public class VolumetricLightRenderer : MonoBehaviour
 
         _halfVolumeLightTexture = new RenderTexture(width / (int)_currentResolution, height / (int)_currentResolution, 0, RenderTextureFormat.ARGBHalf);
         _halfVolumeLightTexture.name = "VolumeLightBufferHalf";
-        _halfVolumeLightTexture.filterMode = FilterMode.Point;
+        _halfVolumeLightTexture.filterMode = FilterMode.Bilinear;
 
         _halfDepthBuffer = new RenderTexture(width / (int)_currentResolution, height / (int)_currentResolution, 0, RenderTextureFormat.RFloat);
         _halfDepthBuffer.name = "VolumeLightHalfDepth";
         _halfDepthBuffer.Create();
-        _halfDepthBuffer.filterMode = FilterMode.Point;
+        _halfDepthBuffer.filterMode = FilterMode.Bilinear;
         UpdateMacroKeyword();
     }
 
@@ -261,7 +261,7 @@ public class VolumetricLightRenderer : MonoBehaviour
         if (onImageEvent != null)
             onImageEvent(this);
         RenderTexture temp = RenderTexture.GetTemporary(_halfVolumeLightTexture.width, _halfVolumeLightTexture.height, 0, RenderTextureFormat.ARGBHalf);
-        temp.filterMode = FilterMode.Point;
+        temp.filterMode = FilterMode.Bilinear;
         // horizontal bilateral blur at x2 res
         Graphics.Blit(_halfVolumeLightTexture, temp, _bilateralBlurMaterial, blurPass.x);
         // vertical bilateral blur at x2 res
