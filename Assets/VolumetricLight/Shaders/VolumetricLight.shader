@@ -1,36 +1,3 @@
-// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-// Upgrade NOTE: replaced 'unity_World2Shadow' with 'unity_WorldToShadow'
-
-//  Copyright(c) 2016, Michal Skalsky
-//  All rights reserved.
-//
-//  Redistribution and use in source and binary forms, with or without modification,
-//  are permitted provided that the following conditions are met:
-//
-//  1. Redistributions of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//  2. Redistributions in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//  3. Neither the name of the copyright holder nor the names of its contributors
-//     may be used to endorse or promote products derived from this software without
-//     specific prior written permission.
-//
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-//  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.IN NO EVENT
-//  SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-//  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
-//  OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-//  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-//  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-
 Shader "Sandbox/VolumetricLight"
 {
 	SubShader
@@ -101,27 +68,6 @@ Shader "Sandbox/VolumetricLight"
 			return result.x - result.y;
 		}
 
-		inline float getFog(float3 startPos, float3 endPos, float intensity, float height){
-			float3 rayDir = endPos - startPos;
-			rayDir = normalize(rayDir);
-			float dotValue = dot(rayDir, float3(0,1,0));
-		/*	if(abs(dotValue) < 0.002)		//Consider use 
-			{
-				 float average = dot(float2(rayStartHeight, rayEndHeight), 0.5);
-				 float3 fogIntensity = float3(
-					 fogFunc(rayStartHeight, intensity),
-					 fogFunc(average, intensity),
-					 fogFunc(rayEndHeight, intensity)
-				 );
-				 return dot(fogIntensity, 0.33333333);
-			}
-			else
-			{*/
-				return abs(fogFuncIntegret(float2(startPos.y, endPos.y) + height, intensity) / dotValue);
-		//	}
-		}
-
-
 
 		//-----------------------------------------------------------------------------------------
 		// GetCascadeWeights_SplitSpheres
@@ -179,7 +125,7 @@ Shader "Sandbox/VolumetricLight"
         //-----------------------------------------------------------------------------------------
         // ApplyHeightFog
         //-----------------------------------------------------------------------------------------
-        inline void ApplyHeightFog(float3 wpos, inout float4 density)
+        inline void ApplyHeightFog(float3 wpos, inout float density)
         {
             density *= exp(-(wpos.y + _HeightFog.x) * _HeightFog.y);
 			//density *= -2 * exp(-(wpos.y + _HeightFog.x) * _HeightFog.y)
@@ -204,13 +150,30 @@ Shader "Sandbox/VolumetricLight"
 		#define random(seed) sin(seed * float2(641.5467987313875, 3154.135764) + float2(1.943856175, 631.543147))
 		#define highQualityRandom(seed) cos(sin(seed * float2(641.5467987313875, 3154.135764) + float2(1.943856175, 631.543147)) * float2(4635.4668457, 84796.1653) + float2(6485.15686, 1456.3574563))
 		float2 _RandomNumber;
+		float _Density;
+		float4 ScatterStep(float3 accumulatedLight, float accumulatedTransmittance, float sliceLight, float sliceDensity)
+		{
+			sliceDensity = max(sliceDensity, 0.000001);
+			float  sliceTransmittance = exp(-sliceDensity / _SampleCount);
+
+	// Seb Hillaire's improved transmission by calculating an integral over slice depth instead of
+	// constant per slice value. Light still constant per slice, but that's acceptable. See slide 28 of
+	// Physically-based & Unified Volumetric Rendering in Frostbite
+	// http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
+			float3 sliceLightIntegral = sliceLight * (1.0 - sliceTransmittance) / sliceDensity;
+
+			accumulatedLight += sliceLightIntegral * accumulatedTransmittance;
+			accumulatedTransmittance *= sliceTransmittance;
+	
+			return float4(accumulatedLight, accumulatedTransmittance);
+		}
 		//-----------------------------------------------------------------------------------------
 		// RayMarch
 		//-----------------------------------------------------------------------------------------
-		float4 RayMarch(float2 screenPos, float3 rayStart, float3 final, float3 rayDir)
+		float4 RayMarch(float2 screenPos, float3 rayStart, float3 final, float3 rayDir, float rate)
 		{
-			float4 vlight = 0;
-
+			float4 vlight = float4(0, 0, 0, 1);
+			rate *= _Density;
 			float cosAngle;
 #if defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE)
 			cosAngle = dot(_LightDir.xyz, -rayDir);
@@ -228,76 +191,19 @@ Shader "Sandbox/VolumetricLight"
 				float lerpValue = i + seed.y* step.y + seed.x * step.z;
 				float3 currentPosition = lerp(rayStart, final, lerpValue);
 				float atten = GetLightAttenuation(currentPosition);
-				float4 light = atten;
-#ifdef NOISE
-			light *= GetDensity(currentPosition);
-#endif
 #ifdef HEIGHT_FOG
-		ApplyHeightFog(currentPosition, light);
+		ApplyHeightFog(currentPosition, atten);
 #endif
-				vlight += light;				
-			}
-
 #if defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE)
 			// apply phase function for dir light
-			vlight *= MieScattering(cosAngle, _MieG);
+			atten *= MieScattering(cosAngle, _MieG);
 #endif
-
-			// apply light's color
-			vlight *= _LightFinalColor;
-
-			vlight = max(0, vlight);
-#if defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE) // use "proper" out-scattering/absorption for dir light 
-			vlight.w = 1;
-
-#else
-            vlight.w = 0;
-#endif
-			return vlight;
-		}
-
-		//-----------------------------------------------------------------------------------------
-		// RayConeIntersect
-		//-----------------------------------------------------------------------------------------
-		float2 RayConeIntersect(in float3 f3ConeApex, in float3 f3ConeAxis, in float fCosAngle, in float3 f3RayStart, in float3 f3RayDir)
-		{
-			float inf = 10000;
-			f3RayStart -= f3ConeApex;
-			float a = dot(f3RayDir, f3ConeAxis);
-			float b = dot(f3RayDir, f3RayDir);
-			float c = dot(f3RayStart, f3ConeAxis);
-			float d = dot(f3RayStart, f3RayDir);
-			float e = dot(f3RayStart, f3RayStart);
-			fCosAngle *= fCosAngle;
-			float A = a*a - b*fCosAngle;
-			float B = 2 * (c*a - d*fCosAngle);
-			float C = c*c - e*fCosAngle;
-			float D = B*B - 4 * A*C;
-
-			if (D > 0)
-			{
-				D = sqrt(D);
-				float2 t = (-B + sign(A)*float2(-D, +D)) / (2 * A);
-				bool2 b2IsCorrect = c + a * t > 0 && t > 0;
-				t = t * b2IsCorrect + !b2IsCorrect * (inf);
-				return t;
+				vlight = ScatterStep(vlight.rgb, vlight.a, atten, rate);				
 			}
-			else // no intersection
-				return inf;
-		}
-
-		//-----------------------------------------------------------------------------------------
-		// RayPlaneIntersect
-		//-----------------------------------------------------------------------------------------
-		float RayPlaneIntersect(in float3 planeNormal, in float planeD, in float3 rayOrigin, in float3 rayDir)
-		{
-			float NdotD = dot(planeNormal, rayDir);
-			float NdotO = dot(planeNormal, rayOrigin);
-
-			float t = -(NdotO + planeD) / NdotD;
-			if (t < 0)
-				t = 100000;
-			return t;
+			// apply light's color
+			vlight.rgb *= _LightFinalColor;
+			vlight.a = saturate(vlight.a);
+			return vlight;
 		}
 
 		ENDCG
@@ -362,13 +268,11 @@ Shader "Sandbox/VolumetricLight"
 				rayDir /= rayLength;
 				rayLength = min(rayLength, _MaxRayLength);
 				float3 final = _WorldSpaceCameraPos + rayDir * rayLength;
-				float4 color = RayMarch(uv, _WorldSpaceCameraPos, final, rayDir);
-
+				float4 color = RayMarch(uv, _WorldSpaceCameraPos, final, rayDir, rayLength / _MaxRayLength);
 				if (Linear01Depth(depth) > 0.9999)
 				{
 					color.rgb *= _VolumetricLight.w;
 				}
-				color.w = 0;
 				return color;
 			}
 			ENDCG

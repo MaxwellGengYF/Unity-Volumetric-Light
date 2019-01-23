@@ -41,6 +41,7 @@ public class VolumetricLight : MonoBehaviour
     private CommandBuffer _cascadeShadowCommandBuffer;
 
     public float intensity = 1;
+    public float scatterDensity = 1;
     [Range(1, 1024)]
     public int SampleCount = 8;
     [Range(0.0f, 1.0f)]
@@ -148,6 +149,7 @@ public class VolumetricLight : MonoBehaviour
     static int _WorldView;
     static int _LightPos;
     static int _LightFinalColor;
+    static int _Density;
     static int _MyLightMatrix0;
     static int _LightTexture0;
     static int _ShadowMapTexture;
@@ -165,6 +167,7 @@ public class VolumetricLight : MonoBehaviour
         _CameraForward = Shader.PropertyToID("_CameraForward");
         _SampleCount = Shader.PropertyToID("_SampleCount");
         _NoiseVelocity = Shader.PropertyToID("_NoiseVelocity");
+        _Density = Shader.PropertyToID("_Density");
         _NoiseData = Shader.PropertyToID("_NoiseData");
         _MieG = Shader.PropertyToID("_MieG");
         _VolumetricLight = Shader.PropertyToID("_VolumetricLight");
@@ -271,7 +274,8 @@ public class VolumetricLight : MonoBehaviour
 
         Vector3 forwd = _light.transform.forward;
         _material.SetVector(_LightDir, new Vector4(forwd.x, forwd.y, forwd.z, 1.0f / (_light.range * _light.range)));
-        _material.SetVector(_LightFinalColor, _light.color * _light.intensity * intensity * (1f / SampleCount));
+        _material.SetVector(_LightFinalColor, _light.color * _light.intensity * intensity);
+        _material.SetFloat(_Density, scatterDensity);
         if (_light.shadows != LightShadows.None)
         {
             _commandBuffer.SetGlobalFloat(_DirectionalLightFlag, 1);

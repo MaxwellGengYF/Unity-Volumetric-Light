@@ -77,13 +77,8 @@ ENDCG
 			void frag(v2f i, out float4 source : SV_Target)
 			{
 				float4 main = tex2D(_MainTex, i.texcoord);
-				float depth = tex2D(_CameraDepthTexture, i.texcoord);
-				float4 worldPos = mul(_InvVP, float4(i.texcoord * 2 - 1, depth, 1));
-				worldPos /= worldPos.w;
-				float dist = distance(worldPos.xyz, _WorldSpaceCameraPos);
-				dist = min(dist, _MaxRayLength);
 				source = tex2D(_Source, i.texcoord);
-				source.xyz += main.xyz * dist;
+				source = lerp(main, source, main.a);
 			}
 			ENDCG
 		}
